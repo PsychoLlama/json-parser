@@ -1,71 +1,88 @@
 // @flow
-export default function InputStream(sourceText: string) {
-  let index = 0;
-  let column = 0;
-  let line = 0;
+export type Loc = {
+  column: number,
+  line: number,
+};
 
-  function createCodeFrame(
-    line: number,
-    column: number,
-    length: number
-  ): string {
-    const lines = sourceText.split('\n');
-    const startingLine = Math.max(line - 2, 0);
-    const endingLine = Math.min(line + 2, lines.length);
-    const startingFrame = lines.slice(startingLine, line + 1);
+function createCodeFrame({ sourceText, line, column, length }): string {
+  const lines = sourceText.split('\n');
+  const startingLine = Math.max(line - 2, 0);
+  const endingLine = Math.min(line + 2, lines.length);
+  const startingFrame = lines.slice(startingLine, line + 1);
 
-    const errorHighlight =
-      Array(column)
-        .fill(' ')
-        .join('') +
-      Array(length)
-        .fill('^')
-        .join('');
+  const errorHighlight =
+    Array(column)
+      .fill(' ')
+      .join('') +
+    Array(length)
+      .fill('^')
+      .join('');
 
-    const endingFrame = lines.slice(line + 1, endingLine);
+  const endingFrame = lines.slice(line + 1, endingLine);
 
-    return (
-      '\n' +
-      startingFrame
-        .concat(errorHighlight)
-        .concat(endingFrame)
-        .map(line => '  ' + line)
-        .join('\n') +
-      '\n'
-    );
+  return (
+    '\n' +
+    startingFrame
+      .concat(errorHighlight)
+      .concat(endingFrame)
+      .map(line => '  ' + line)
+      .join('\n') +
+    '\n'
+  );
+}
+
+export default class InputStream {
+  static from(sourceText: string) {
+    return new InputStream(sourceText);
   }
 
-  return new class InputStream {
-    getLoc = () => ({ line, column });
+  sourceText: *;
+  column = 0;
+  index = 0;
+  line = 0;
 
-    consumeNextChar = (): string => {
-      const result = this.peek();
+  constructor(sourceText: string) {
+    this.sourceText = sourceText;
+  }
 
-      index += 1;
-      if (result === '\n') {
-        column = 0;
-        line += 1;
-      } else {
-        column += 1;
-      }
+  getLoc = (): Loc => ({
+    column: this.column,
+    line: this.line,
+  });
 
-      return result;
-    };
+  consumeNextChar = (): string => {
+    const result = this.peek();
 
-    peek = (): string => {
-      return sourceText[index] || '';
-    };
+    this.index += 1;
+    if (result === '\n') {
+      this.column = 0;
+      this.line += 1;
+    } else {
+      this.column += 1;
+    }
 
-    eof = () => {
-      return !this.peek();
-    };
+    return result;
+  };
 
-    die = (
-      message: string,
-      { line, column, length }: { line: number, column: number, length: number }
-    ) => {
-      const frame = createCodeFrame(line, column, length);
-      throw new Error(message + '\n' + frame);
-    };
-  }();
+  peek = (): string => {
+    return this.sourceText[this.index] || '';
+  };
+
+  eof = () => {
+    return !this.peek();
+  };
+
+  die = (
+    message: string,
+    { line, column, length }: { line: number, column: number, length: number }
+  ) => {
+    const frame = createCodeFrame({
+      sourceText: this.sourceText,
+      column,
+      length,
+      line,
+    });
+
+    throw new Error(message + '\n' + frame);
+  };
 }

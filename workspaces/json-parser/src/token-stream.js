@@ -1,10 +1,5 @@
 // @flow
-import './input-stream';
-
-type Loc = {
-  line: number,
-  col: number,
-};
+import InputStream, { type Loc } from './input-stream';
 
 type JsonString = {
   type: 'String',
@@ -28,12 +23,12 @@ type JsonNumber = {
 };
 
 type JsonDelimiter = {
-  value: '[' | ']' | '{' | '}' | ',' | ':',
   type: 'Delimiter',
+  value: string,
   loc: Loc,
 };
 
-export default function TokenStream(inputStream: any) {
+export default function TokenStream(inputStream: InputStream) {
   let peekedToken = null;
 
   const readWhile = (predicate: (string, string) => boolean) => {
