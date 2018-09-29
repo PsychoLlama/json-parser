@@ -49,7 +49,7 @@ export default function TokenStream(inputStream: any) {
     readWhile(char => /\s/.test(char));
   };
 
-  const isNumber = char => /[\d.]/.test(char);
+  const isNumber = char => /[\d.-]/.test(char);
   const readNumber = (): JsonNumber => {
     const loc = inputStream.getLoc();
     const raw = readWhile(isNumber);
