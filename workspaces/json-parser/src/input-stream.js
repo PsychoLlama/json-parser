@@ -4,15 +4,23 @@ export default function InputStream(sourceText: string) {
   let column = 0;
   let line = 0;
 
-  function createCodeFrame(line: number, column: number): string {
+  function createCodeFrame(
+    line: number,
+    column: number,
+    length: number
+  ): string {
     const lines = sourceText.split('\n');
     const startingLine = Math.max(line - 2, 0);
     const endingLine = Math.min(line + 2, lines.length);
     const startingFrame = lines.slice(startingLine, line + 1);
+
     const errorHighlight =
-      Array(Math.max(column - 1, 0))
+      Array(column)
         .fill(' ')
-        .join('') + '^';
+        .join('') +
+      Array(length)
+        .fill('^')
+        .join('');
 
     const endingFrame = lines.slice(line + 1, endingLine);
 
@@ -52,8 +60,11 @@ export default function InputStream(sourceText: string) {
       return !this.peek();
     };
 
-    die = (message: string) => {
-      const frame = createCodeFrame(line, column);
+    die = (
+      message: string,
+      { line, column, length }: { line: number, column: number, length: number }
+    ) => {
+      const frame = createCodeFrame(line, column, length);
       throw new Error(message + '\n' + frame);
     };
   }();

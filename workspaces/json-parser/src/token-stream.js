@@ -107,7 +107,10 @@ export default function TokenStream(inputStream: any) {
       }: JsonBoolean);
     }
 
-    return null;
+    return inputStream.die(
+      `Invalid identifier "${raw}"`,
+      Object.assign({}, loc, { length: raw.length })
+    );
   };
 
   const readNextToken = () => {
