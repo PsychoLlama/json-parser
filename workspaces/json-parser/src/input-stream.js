@@ -28,16 +28,20 @@ export default function InputStream(sourceText: string) {
   }
 
   return new class InputStream {
+    getLoc = () => ({ line, column });
+
     consumeNextChar = (): string => {
-      if (this.peek() === '\n') {
+      const result = this.peek();
+
+      index += 1;
+      if (result === '\n') {
         column = 0;
         line += 1;
       } else {
         column += 1;
       }
 
-      index += 1;
-      return this.peek();
+      return result;
     };
 
     peek = (): string => {
