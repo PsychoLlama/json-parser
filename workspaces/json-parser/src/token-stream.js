@@ -28,26 +28,60 @@ type JsonDelimiter = {
   loc: Loc,
 };
 
-export default function TokenStream(inputStream: InputStream) {
-  let peekedToken = null;
+type JsonToken = JsonString | JsonBoolean | JsonNumber | JsonDelimiter;
 
-  const readWhile = (predicate: (string, string) => boolean) => {
+const delimiters = new Set(['[', ']', '{', '}', ',', ':']);
+const isNumber = char => /[\d.-]/.test(char);
+const isString = char => char === '"';
+const isDelimiter = char => delimiters.has(char);
+
+export default class TokenStream {
+  static from(inputStream: InputStream) {
+    return new TokenStream(inputStream);
+  }
+
+  inputStream: *;
+  peekedToken: ?JsonToken;
+
+  constructor(inputStream: InputStream) {
+    this.inputStream = inputStream;
+  }
+
+  consumeNextToken = () => {
+    if (this.peekedToken) {
+      const result = this.peekedToken;
+      this.peekedToken = null;
+
+      return result;
+    }
+
+    return this.readNextToken();
+  };
+
+  peek = () => {
+    return this.peekedToken || (this.peekedToken = this.consumeNextToken());
+  };
+
+  eof = () => {
+    return !this.peek();
+  };
+
+  readWhile(predicate: (string, string) => boolean) {
     let acc = '';
-    while (!inputStream.eof() && predicate(inputStream.peek(), acc)) {
-      acc += inputStream.consumeNextChar();
+    while (!this.inputStream.eof() && predicate(this.inputStream.peek(), acc)) {
+      acc += this.inputStream.consumeNextChar();
     }
 
     return acc;
-  };
+  }
 
-  const discardWhitespace = () => {
-    readWhile(char => /\s/.test(char));
-  };
+  discardWhitespace() {
+    this.readWhile(char => /\s/.test(char));
+  }
 
-  const isNumber = char => /[\d.-]/.test(char);
-  const readNumber = (): JsonNumber => {
-    const loc = inputStream.getLoc();
-    const raw = readWhile(isNumber);
+  readNumber(): JsonNumber {
+    const loc = this.inputStream.getLoc();
+    const raw = this.readWhile(isNumber);
 
     return {
       value: Number(raw),
@@ -55,19 +89,18 @@ export default function TokenStream(inputStream: InputStream) {
       loc,
       raw,
     };
-  };
+  }
 
-  const isString = char => char === '"';
-  const readString = (): JsonString => {
-    const loc = inputStream.getLoc();
-    let raw = inputStream.consumeNextChar();
+  readString(): JsonString {
+    const loc = this.inputStream.getLoc();
+    let raw = this.inputStream.consumeNextChar();
 
-    raw += readWhile((value, acc) => {
+    raw += this.readWhile((value, acc) => {
       if (value !== '"') return true;
       return acc[acc.length - 1] === '\\';
     });
 
-    raw += inputStream.consumeNextChar();
+    raw += this.inputStream.consumeNextChar();
 
     return {
       value: raw.slice(1, -1),
@@ -75,23 +108,21 @@ export default function TokenStream(inputStream: InputStream) {
       raw,
       loc,
     };
-  };
+  }
 
-  const delimiters = new Set(['[', ']', '{', '}', ',', ':']);
-  const isDelimiter = char => delimiters.has(char);
-  const readDelimiter = (): JsonDelimiter => {
-    const loc = inputStream.getLoc();
+  readDelimiter(): JsonDelimiter {
+    const loc = this.inputStream.getLoc();
 
     return {
-      value: inputStream.consumeNextChar(),
+      value: this.inputStream.consumeNextChar(),
       type: 'Delimiter',
       loc,
     };
-  };
+  }
 
-  const readUnknown = () => {
-    const loc = inputStream.getLoc();
-    const raw = readWhile(char => /[\w\d]/.test(char));
+  readUnknown() {
+    const loc = this.inputStream.getLoc();
+    const raw = this.readWhile(char => /[\w\d]/.test(char));
 
     if (raw === 'true' || raw === 'false') {
       return ({
@@ -102,45 +133,24 @@ export default function TokenStream(inputStream: InputStream) {
       }: JsonBoolean);
     }
 
-    return inputStream.die(
+    return this.inputStream.die(
       `Invalid identifier "${raw}"`,
       Object.assign({}, loc, { length: raw.length })
     );
-  };
+  }
 
-  const readNextToken = () => {
-    discardWhitespace();
+  readNextToken() {
+    this.discardWhitespace();
 
-    if (inputStream.eof()) {
+    if (this.inputStream.eof()) {
       return null;
     }
 
-    const ch = inputStream.peek();
-    if (isNumber(ch)) return readNumber();
-    if (isString(ch)) return readString();
-    if (isDelimiter(ch)) return readDelimiter();
+    const ch = this.inputStream.peek();
+    if (isNumber(ch)) return this.readNumber();
+    if (isString(ch)) return this.readString();
+    if (isDelimiter(ch)) return this.readDelimiter();
 
-    return readUnknown();
-  };
-
-  return new class TokenStream {
-    consumeNextToken = () => {
-      if (peekedToken) {
-        const result = peekedToken;
-        peekedToken = null;
-
-        return result;
-      }
-
-      return readNextToken();
-    };
-
-    peek = () => {
-      return peekedToken || (peekedToken = this.consumeNextToken());
-    };
-
-    eof = () => {
-      return !this.peek();
-    };
-  }();
+    return this.readUnknown();
+  }
 }
