@@ -14,7 +14,8 @@
   },
   "lint-staged": {
     "*.js": [
-      "freighter-scripts lint --fix"
+      "freighter-scripts lint --fix",
+      "git add"
     ]
   },
   "workspaces": [
