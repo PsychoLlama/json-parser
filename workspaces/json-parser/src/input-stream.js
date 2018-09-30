@@ -4,6 +4,13 @@ export type Loc = {
   line: number,
 };
 
+export type ErrorTrace = {
+  message: string,
+  length: number,
+  column: number,
+  line: number,
+};
+
 function createCodeFrame({ sourceText, line, column, length }): string {
   const lines = sourceText.split('\n');
   const startingLine = Math.max(line - 2, 0);
@@ -72,10 +79,7 @@ export default class InputStream {
     return !this.peek();
   };
 
-  die = (
-    message: string,
-    { line, column, length }: { line: number, column: number, length: number }
-  ) => {
+  die = ({ message, line, column, length }: ErrorTrace) => {
     const frame = createCodeFrame({
       sourceText: this.sourceText,
       column,

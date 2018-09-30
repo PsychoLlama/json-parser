@@ -1,34 +1,46 @@
 // @flow
 import InputStream, { type Loc } from './input-stream';
 
-type JsonString = {
+export type JsonString = {
   type: 'String',
   value: string,
   raw: string,
   loc: Loc,
 };
 
-type JsonBoolean = {
+export type JsonBoolean = {
   type: 'Boolean',
   value: boolean,
   raw: string,
   loc: Loc,
 };
 
-type JsonNumber = {
+export type JsonNull = {
+  type: 'Null',
+  raw: string,
+  loc: Loc,
+};
+
+export type JsonNumber = {
   type: 'Number',
   value: number,
   loc: Loc,
   raw: string,
 };
 
-type JsonDelimiter = {
+export type JsonDelimiter = {
   type: 'Delimiter',
   value: string,
+  raw: string,
   loc: Loc,
 };
 
-type JsonToken = JsonString | JsonBoolean | JsonNumber | JsonDelimiter;
+export type JsonToken =
+  | JsonDelimiter
+  | JsonBoolean
+  | JsonNumber
+  | JsonString
+  | JsonNull;
 
 const delimiters = new Set(['[', ']', '{', '}', ',', ':']);
 const isNumber = char => /[\d.-]/.test(char);
@@ -47,7 +59,7 @@ export default class TokenStream {
     this.inputStream = inputStream;
   }
 
-  consumeNextToken = () => {
+  consumeNextToken = (): ?JsonToken => {
     if (this.peekedToken) {
       const result = this.peekedToken;
       this.peekedToken = null;
@@ -112,10 +124,12 @@ export default class TokenStream {
 
   readDelimiter(): JsonDelimiter {
     const loc = this.inputStream.getLoc();
+    const value = this.inputStream.consumeNextChar();
 
     return {
-      value: this.inputStream.consumeNextChar(),
       type: 'Delimiter',
+      raw: value,
+      value,
       loc,
     };
   }
@@ -133,9 +147,15 @@ export default class TokenStream {
       }: JsonBoolean);
     }
 
+    if (raw === 'null') {
+      return ({ type: 'Null', raw, loc }: JsonNull);
+    }
+
     return this.inputStream.die(
-      `Invalid identifier "${raw}"`,
-      Object.assign({}, loc, { length: raw.length })
+      Object.assign({}, loc, {
+        message: `Invalid identifier "${raw}"`,
+        length: raw.length,
+      })
     );
   }
 
@@ -152,5 +172,18 @@ export default class TokenStream {
     if (isDelimiter(ch)) return this.readDelimiter();
 
     return this.readUnknown();
+  }
+
+  report(token: JsonToken, message: string) {
+    const trace = Object.assign({}, token.loc, {
+      length: token.raw.length,
+      message,
+    });
+
+    this.inputStream.die(trace);
+  }
+
+  eof() {
+    return this.inputStream.eof();
   }
 }
