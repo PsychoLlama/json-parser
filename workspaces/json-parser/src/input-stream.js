@@ -87,6 +87,6 @@ export default class InputStream {
       line,
     });
 
-    throw new Error(message + '\n' + frame);
+    throw new SyntaxError(message + '\n' + frame);
   };
 }

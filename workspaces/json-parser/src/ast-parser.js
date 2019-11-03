@@ -60,12 +60,12 @@ export default class AstParser {
   consumeToAst(): AST {
     const token = this.tokenizer.peek();
     if (!token) {
-      throw new Error('Unexpected end of input.');
+      throw new SyntaxError('Unexpected end of input.');
     }
 
     if (isPrimitive(token)) return this.parsePrimitive();
     if (this.isType('Delimiter')) return this.parseStructure();
-    throw new Error(`Not implemented: ${token.type}`);
+    throw new SyntaxError(`Not implemented: ${token.type}`);
   }
 
   parsePrimitive() {
@@ -77,7 +77,7 @@ export default class AstParser {
     const token = this.tokenizer.consumeNextToken();
     const actualType = (token || {}).type;
     if (actualType !== type) {
-      throw new Error(`Unexpected type ${actualType}`);
+      throw new SyntaxError(`Unexpected type ${actualType}`);
     }
 
     return token;
