@@ -10,11 +10,10 @@
   "scripts": {
     "test": "echo lol && exit 1",
     "lint": "eslint src --color",
+    "type-check": "flow",
     "prepare": "babel src -d dist"
   },
   "devDependencies": {
-    "@freighter/scripts": "0.2.4",
-    "eslint-config-freighter-repo": "0.2.3",
     "eslint-config-prettier": "3.0.1",
     "eslint-plugin-flowtype": "2.50.0",
     "eslint-plugin-prettier": "2.6.2",
