@@ -18,12 +18,7 @@ function createCodeFrame({ sourceText, line, column, length }): string {
   const startingFrame = lines.slice(startingLine, line + 1);
 
   const errorHighlight =
-    Array(column)
-      .fill(' ')
-      .join('') +
-    Array(length)
-      .fill('^')
-      .join('');
+    Array(column).fill(' ').join('') + Array(length).fill('^').join('');
 
   const endingFrame = lines.slice(line + 1, endingLine);
 
@@ -32,7 +27,7 @@ function createCodeFrame({ sourceText, line, column, length }): string {
     startingFrame
       .concat(errorHighlight)
       .concat(endingFrame)
-      .map(line => '  ' + line)
+      .map((line) => '  ' + line)
       .join('\n') +
     '\n'
   );

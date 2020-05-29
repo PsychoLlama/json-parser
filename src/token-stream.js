@@ -43,9 +43,9 @@ export type JsonToken =
   | JsonNull;
 
 const delimiters = new Set(['[', ']', '{', '}', ',', ':']);
-const isNumber = char => /[\d.-]/.test(char);
-const isString = char => char === '"';
-const isDelimiter = char => delimiters.has(char);
+const isNumber = (char) => /[\d.-]/.test(char);
+const isString = (char) => char === '"';
+const isDelimiter = (char) => delimiters.has(char);
 
 export default class TokenStream {
   static from(inputStream: InputStream) {
@@ -88,7 +88,7 @@ export default class TokenStream {
   }
 
   discardWhitespace() {
-    this.readWhile(char => /\s/.test(char));
+    this.readWhile((char) => /\s/.test(char));
   }
 
   readNumber(): JsonNumber {
@@ -136,7 +136,7 @@ export default class TokenStream {
 
   readUnknown() {
     const loc = this.inputStream.getLoc();
-    const raw = this.readWhile(char => /[\w\d]/.test(char));
+    const raw = this.readWhile((char) => /[\w\d]/.test(char));
 
     if (raw === 'true' || raw === 'false') {
       return ({
