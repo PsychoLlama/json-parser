@@ -1,1 +1,17 @@
-extends: freighter-repo
+overrides:
+  - files: '**/flow-typed/npm/**'
+    rules:
+      flowtype/require-valid-file-annotation: off
+      prettier/prettier: off
+
+extends:
+  - eslint:recommended
+  - plugin:flowtype/recommended
+  - plugin:prettier/recommended
+
+env:
+  node: true
+  es6: true
+
+parserOptions:
+  sourceType: module

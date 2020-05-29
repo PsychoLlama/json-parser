@@ -2,36 +2,30 @@
   "name": "json-parser",
   "version": "0.1.0",
   "private": true,
-  "main": null,
-  "description": "TODO",
-  "repository": "TODO",
-  "license": "TODO",
+  "main": "dist/index.js",
+  "description": "A hand-rolled JSON parser for no reason whatsoever",
+  "repository": "https://github.com/PsychoLlama/json-parser",
+  "license": "MIT",
+  "author": "Jesse Gibson <JesseTheGibson@gmail.com>",
   "scripts": {
-    "test": "freighter-scripts test",
-    "lint": "freighter-scripts lint",
-    "ci": "freighter-scripts ci",
-    "precommit": "lint-staged"
+    "test": "echo lol && exit 1",
+    "lint": "eslint src --color",
+    "build": "babel src -d dist"
   },
-  "lint-staged": {
-    "*.js": [
-      "freighter-scripts lint --fix",
-      "git add"
-    ]
-  },
-  "workspaces": [
-    "workspaces/*"
-  ],
   "devDependencies": {
     "@freighter/scripts": "0.2.4",
     "eslint-config-freighter-repo": "0.2.3",
     "eslint-config-prettier": "3.0.1",
     "eslint-plugin-flowtype": "2.50.0",
     "eslint-plugin-prettier": "2.6.2",
+    "babel-cli": "^6.26.0",
+    "babel-plugin-transform-class-properties": "^6.24.1",
+    "babel-preset-flow": "^6.23.0",
+    "babel-preset-node6": "^11.0.0",
     "flow-bin": "0.80.0",
     "flow-typed": "2.5.1",
     "husky": "0.14.3",
     "lerna": "3.3.0",
-    "lint-staged": "7.2.2",
     "prettier": "1.14.2"
   }
 }
